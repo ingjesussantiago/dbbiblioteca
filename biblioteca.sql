@@ -222,3 +222,5 @@ JOIN Editoriales E ON Li.ID_Editorial = E.ID_Editorial;
 SELECT *
 FROM libros_prestados
 WHERE Nombre_Lector = 'Pedro' AND Apellido_Lector = 'Alonso';
+
+-- fin de actividad
