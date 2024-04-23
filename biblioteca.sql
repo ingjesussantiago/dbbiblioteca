@@ -158,25 +158,67 @@ from prestamos
 join libros_prestamo on libros_prestamo.id_prestamo = 1
 
 
--- borarr atributo
-ALTER TABLE prestamos DROP COLUMN isbn;
-
-DELETE FROM usuarios WHERE id = 123;
+-- 3.	Realizar consultas para conocer cuántas veces se presta un determinado libro, ordenando las cantidades de mayor a menor.
 
 
-'4568874'
-'44558877'
-'7788845'
-'45699874'
-'7787898'
-'2564111' 
-'5544781'
-'22545447'
-'2225412'
+SELECT LP.ISBN AS ISBN_Libro,
+       L.Nombre_Libro,
+       COUNT(LP.ID_Prestamo) AS Veces_Prestado
+FROM Libros_Prestamo LP
+JOIN Libros L ON LP.ISBN = L.ISBN
+GROUP BY LP.ISBN, L.Nombre_Libro
+ORDER BY Veces_Prestado DESC;
 
 
+-- 4.	Efectuar consultas para saber la cantidad de libros que tiene en préstamo cada lector, luego presentar un print de pantalla. 
 
+SELECT L.ID AS ID_Lector,
+       L.Nombre,
+       L.Apellido,
+       COUNT(LP.ISBN) AS Libros_En_Prestamo
+FROM Lectores L
+LEFT JOIN Prestamos P ON L.ID = P.ID_Lector
+LEFT JOIN Libros_Prestamo LP ON P.ID_Prestamo = LP.ID_Prestamo
+GROUP BY L.ID, L.Nombre, L.Apellido
+ORDER BY Libros_En_Prestamo DESC;
 
+-- Con uno de los lectores, al que se le cargó 5 libros, simular que devolvió uno de ellos (quitarle su relación con un libro en particular), y ejecutar la consulta anterior para analizar los resultados que se obtienen. Ahora sí, puede presentar el preview.
+DELETE FROM Libros_Prestamo
+WHERE ID_Prestamo = 1
+AND ISBN = '44558877';
 
--- '88541254'
+-- 5.	Obtener el promedio de edad de los lectores, el lector con más años y el lector más joven.
 
+-- Promedio de edad de los lectores
+SELECT AVG(EXTRACT(YEAR FROM AGE(Fecha_Nacimiento))) AS Promedio_Edad
+FROM Lectores;
+
+-- Lector más viejo
+SELECT Nombre, Apellido, Fecha_Nacimiento
+FROM Lectores
+ORDER BY Fecha_Nacimiento ASC
+LIMIT 1;
+
+-- Lector más joven
+SELECT Nombre, Apellido, Fecha_Nacimiento
+FROM Lectores
+ORDER BY Fecha_Nacimiento DESC
+LIMIT 1;
+
+-- 6.	Crear una vista llamada libros_prestados. Debe retornar el nombre de los lectores, el nombre de los libros que ellos tienen en préstamo, el nombre de la editorial de dichos libros y su correspondiente ISBN. Ejecutar la vista para obtener los libros prestados para el lector Pedro Alonso.
+
+CREATE VIEW libros_prestados AS
+SELECT L.Nombre AS Nombre_Lector,
+       L.Apellido AS Apellido_Lector,
+       Li.Nombre_Libro,
+       E.Nombre_Editorial,
+       Li.ISBN
+FROM Lectores L
+JOIN Prestamos P ON L.ID = P.ID_Lector
+JOIN Libros_Prestamo LP ON P.ID_Prestamo = LP.ID_Prestamo
+JOIN Libros Li ON LP.ISBN = Li.ISBN
+JOIN Editoriales E ON Li.ID_Editorial = E.ID_Editorial;
+
+SELECT *
+FROM libros_prestados
+WHERE Nombre_Lector = 'Pedro' AND Apellido_Lector = 'Alonso';
