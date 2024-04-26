@@ -224,3 +224,55 @@ FROM libros_prestados
 WHERE Nombre_Lector = 'Pedro' AND Apellido_Lector = 'Alonso';
 
 -- fin de actividad
+
+actividad 4
+
+-- creacion de procedimeintos
+
+CREATE OR REPLACE PROCEDURE RegistrarDevolucion(
+    IN p_ID_Lector INT,
+    IN p_ISBN VARCHAR(20)
+)
+AS $$
+BEGIN
+    DELETE FROM Libros_Prestamo
+    WHERE ID_Prestamo IN (
+        SELECT ID_Prestamo
+        FROM Prestamos
+        WHERE ID_Lector = p_ID_Lector
+    ) AND ISBN = p_ISBN;
+END;
+$$ LANGUAGE plpgsql;
+
+-- llamado al procediemiento
+CALL RegistrarDevolucion(1, '7788845');
+
+-- verificar procedimiento 
+SELECT *
+FROM Libros_Prestamo;
+
+
+-- 2.	Elaborar una tabla de logs para ir registrando las devoluciones de los ejemplares. Hacer que la tabla se complete mediante un trigger. Esta tabla de logs deberá almacenar el identificador de lector y el identificador de libro junto a la fecha y hora de la devolución. Efectuar
+
+-- Crear la tabla de logs:
+CREATE TABLE Devoluciones_Log (
+    ID SERIAL PRIMARY KEY,
+    ID_Lector INT,
+    ISBN VARCHAR(20),
+    Fecha_Hora_Devolucion TIMESTAMP
+);
+-- Crear el trigger para insertar registros en la tabla de logs cuando se elimina una relación en la tabla Libros_Prestamo:
+
+CREATE OR REPLACE FUNCTION RegistrarDevolucion_Log()
+RETURNS TRIGGER AS $$
+BEGIN
+    INSERT INTO Devoluciones_Log (ID_Lector, ISBN, Fecha_Hora_Devolucion)
+    VALUES (OLD.id_lector, OLD.ISBN, CURRENT_TIMESTAMP);
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_devolucion
+AFTER DELETE ON Libros_Prestamo
+FOR EACH ROW
+EXECUTE FUNCTION RegistrarDevolucion_Log();
