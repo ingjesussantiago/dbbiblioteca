@@ -265,14 +265,30 @@ CREATE TABLE Devoluciones_Log (
 
 CREATE OR REPLACE FUNCTION RegistrarDevolucion_Log()
 RETURNS TRIGGER AS $$
+DECLARE
+    v_ID_Lector INT;
 BEGIN
+    -- Obtener el ID del lector desde la tabla Prestamos
+    SELECT ID_Lector INTO v_ID_Lector
+    FROM Prestamos
+    WHERE ID_Prestamo = OLD.ID_Prestamo;
+
+    -- Insertar el registro en la tabla de logs Devoluciones_Log
     INSERT INTO Devoluciones_Log (ID_Lector, ISBN, Fecha_Hora_Devolucion)
-    VALUES (OLD.id_lector, OLD.ISBN, CURRENT_TIMESTAMP);
+    VALUES (v_ID_Lector, OLD.ISBN, CURRENT_TIMESTAMP);
+
     RETURN OLD;
 END;
 $$ LANGUAGE plpgsql;
 
+-- Crear el trigger trigger_devolucion
 CREATE TRIGGER trigger_devolucion
 AFTER DELETE ON Libros_Prestamo
 FOR EACH ROW
 EXECUTE FUNCTION RegistrarDevolucion_Log();
+
+CALL RegistrarDevolucion(4, '44558877');
+CALL RegistrarDevolucion(5, '7788845');
+CALL RegistrarDevolucion(6, '2564111');
+CALL RegistrarDevolucion(7, '4568874');
+
