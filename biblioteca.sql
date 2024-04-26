@@ -292,3 +292,23 @@ CALL RegistrarDevolucion(5, '7788845');
 CALL RegistrarDevolucion(6, '2564111');
 CALL RegistrarDevolucion(7, '4568874');
 
+
+-- 3.	Crear una función que se llame libros_prestados, que ermita saber la cantidad de ejemplares prestados actualmente. Ejecutar y mostrar la cantidad obtenida (preview).
+
+
+CREATE OR REPLACE FUNCTION libros_prestados()
+RETURNS INTEGER AS $$
+DECLARE
+    cantidad_prestados INTEGER;
+BEGIN
+    -- Contar la cantidad de ejemplares prestados
+    SELECT COUNT(*)
+    INTO cantidad_prestados
+    FROM Libros_Prestamo;
+
+    RETURN cantidad_prestados;
+END;
+$$ LANGUAGE plpgsql;
+
+
+SELECT libros_prestados() AS cantidad_prestados;
